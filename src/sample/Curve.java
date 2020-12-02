@@ -100,10 +100,29 @@ public class Curve extends Pane {
 
         return y;
     }
-    private void analyseBehaviour(){
 
+    private double getSum(ArrayList<Double> values) {
+        double sum = 0;
+        for (Double value: values) {
+            sum += value;
+        }
 
+        return sum;
     }
+
+    private void analyseBehaviour(){
+        if (this.getSum(values) > 0 && values.get(3) == 0 && values.get(1) == 0) {
+            this.behaviour[0] = "Achsensymmetrisch";
+        } else if (this.getSum(values) > 0 && values.get(4) == 0 && values.get(2) == 0 && values.get(0) == 0) {
+            this.behaviour[0] = "Punktsymmetrisch";
+        } else {
+            // TODO: Add control for all symmetries
+            this.behaviour[0] = "Keine Symmetrien";
+        }
+
+        this.behaviour[3] = String.valueOf(values.get(0));
+    }
+
     public String getBehaviour(int index){
         if (index>=0 && index <=4) {
             return behaviour[index];

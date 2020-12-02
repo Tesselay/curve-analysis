@@ -94,18 +94,8 @@ public class Curve extends Pane {
     private double calcYValue(double x){
         double y = 0;
 
-        y += values.get(0);
-
-        for (int i = 1; i < values.size(); i++) {
-            double sum = values.get(i) * x;
-            for (int j = 1; j < i; j++) {
-                sum *= values.get(i) * x;
-            }
-            y += sum;
-
-            if (values.get(i) < 0) {
-                y *= -1;
-            }
+        for (int i = 0; i < values.size(); i++) {
+            y += values.get(i) * Math.pow(x, i);
         }
 
         return y;

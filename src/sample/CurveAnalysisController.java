@@ -32,6 +32,7 @@ public class CurveAnalysisController implements Initializable {
     @FXML private Label completeCurve;
     @FXML private Label symmetries;
     @FXML private Label yAxesCrossing;
+    @FXML private Label zeroPoints;
 
     @FXML private ArrayList<Double> curValues = new ArrayList<>();
 
@@ -56,7 +57,7 @@ public class CurveAnalysisController implements Initializable {
         myPane.getChildren().add(curve);
         symmetries.setText(curve.getBehaviour(0));
         yAxesCrossing.setText(curve.getBehaviour(3));
-
+        zeroPoints.setText(curve.getBehaviour(4));
     }
 
     @Override

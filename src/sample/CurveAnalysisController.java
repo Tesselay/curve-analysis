@@ -30,6 +30,7 @@ public class CurveAnalysisController implements Initializable {
     @FXML private Label lx3;
     @FXML private Label lx4;
     @FXML private Label completeCurve;
+    @FXML private Label degree;
     @FXML private Label symmetries;
     @FXML private Label yAxesCrossing;
     @FXML private Label zeroPoints;
@@ -56,6 +57,7 @@ public class CurveAnalysisController implements Initializable {
         curve.setId("curve"+numberofChildren);
         myPane.getChildren().add(curve);
         symmetries.setText(curve.getBehaviour(0));
+        degree.setText(curve.getBehaviour(2));
         yAxesCrossing.setText(curve.getBehaviour(3));
         zeroPoints.setText(curve.getBehaviour(4));
     }

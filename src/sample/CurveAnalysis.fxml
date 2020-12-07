@@ -30,8 +30,8 @@
             <Label fx:id ="completeCurve" />
             <Label text = "Symmetrien:"/>
             <Label fx:id="symmetries"/>
-            <Label text = "Verhalten im Unendlichen:"/>
-            <Label fx:id="infinity"/>
+            <Label text = "Grad der Funktion:"/>
+            <Label fx:id="degree"/>
             <Label text = "Y-Achsenabschnitt:"/>
             <Label fx:id="yAxesCrossing"/>
             <Label text = "Nullpunkte:"/>

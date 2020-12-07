@@ -120,6 +120,11 @@ public class Curve extends Pane {
             this.behaviour[0] = "Keine Symmetrien";
         }
 
+        for (int i = 0; i < values.size(); i++) {
+            if (values.get(i) > 0) {
+                this.behaviour[2] = String.valueOf(i);
+            }
+        }
         this.behaviour[3] = String.valueOf(values.get(0));
     }
 

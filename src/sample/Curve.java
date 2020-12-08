@@ -110,10 +110,11 @@ public class Curve extends Pane {
         return sum;
     }
 
+
     private void analyseBehaviour(){
-        if (this.getSum(values) > 0 && values.get(3) == 0 && values.get(1) == 0) {
+        if ((this.getSum(values) > 0 || this.getSum(values) < 0) && values.get(3) == 0 && values.get(1) == 0) {
             this.behaviour[0] = "Achsensymmetrisch";
-        } else if (this.getSum(values) > 0 && values.get(4) == 0 && values.get(2) == 0 && values.get(0) == 0) {
+        } else if ((this.getSum(values) > 0 || this.getSum(values) < 0) && values.get(4) == 0 && values.get(2) == 0 && values.get(0) == 0) {
             this.behaviour[0] = "Punktsymmetrisch";
         } else {
             // TODO: Add control for all symmetries
@@ -125,6 +126,7 @@ public class Curve extends Pane {
                 this.behaviour[2] = String.valueOf(i);
             }
         }
+
         this.behaviour[3] = String.valueOf(values.get(0));
     }
 

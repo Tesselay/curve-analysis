@@ -8,6 +8,8 @@ import javafx.scene.shape.Path;
 import javafx.scene.shape.Rectangle;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
 
 public class Curve extends Pane {
 
@@ -18,6 +20,7 @@ public class Curve extends Pane {
     private Axes axes;
     private Path path;
     private String[] behaviour = {"","","","",""};
+    private String[] zeroes = {"", "", ""};
 
     public Curve(
             ArrayList<Double> values,
@@ -110,17 +113,64 @@ public class Curve extends Pane {
         return sum;
     }
 
+    private void setZeroesText() {
+        this.behaviour[4] = String.format("1. Nullstelle: %s\n2. Nullstelle: %s\n3. Nullstelle: %s", zeroes[0], zeroes[1], zeroes[2]);
+    }
+
+    private void zeroDegreeZeroes() {
+        if (values.get(0) != 0) {
+            zeroes[0] = "Nicht vorhanden";
+            zeroes[1] = "Nicht vorhanden";
+            zeroes[2] = "Nicht vorhanden";
+        } else {
+            zeroes[0] = "Infinite";
+            zeroes[1] = "Infinite";
+            zeroes[2] = "Infinite";
+        }
+    }
+
+    private void firstDegreeZeroes() {
+        // 0 = mx + b -> -b/m = x           =>       (-1 * values.get(0)) / values.get(1) = x
+        zeroes[0] = String.valueOf((-1 * values.get(0)) / values.get(1));
+        zeroes[1] = "Nicht vorhanden";
+        zeroes[2] = "Nicht vorhanden";
+    }
+
+    private void secondDegreeZeroes() {
+        // f(x) = ax^2 + bx + c -- p = b/a, q = c/a --> f(x) = ax^2 + p + q
+        double p = values.get(1) / values.get(2);
+        double q = values.get(0) / values.get(2);
+        double precedEquation = (-1 * p) / 2;
+        double sqrtEquation = Math.sqrt(Math.pow((p / 2), 2) - q);
+
+        zeroes[0] = String.valueOf(precedEquation + sqrtEquation);
+        zeroes[1] = String.valueOf(precedEquation - sqrtEquation);
+        zeroes[2] = "Nicht vorhanden";
+    }
+
+    private void thirdDegreeZeroes() {
+
+    }
+
+    private void fourthDegreeZeroes() {
+
+    }
 
     private void analyseBehaviour(){
-        if ((this.getSum(values) > 0 || this.getSum(values) < 0) && values.get(3) == 0 && values.get(1) == 0) {
+        if (this.getSum(values) != 0 && values.get(3) == 0 && values.get(1) == 0) {
             this.behaviour[0] = "Achsensymmetrisch";
-        } else if ((this.getSum(values) > 0 || this.getSum(values) < 0) && values.get(4) == 0 && values.get(2) == 0 && values.get(0) == 0) {
+        } else if (this.getSum(values) != 0 && values.get(4) == 0 && values.get(2) == 0 && values.get(0) == 0) {
             this.behaviour[0] = "Punktsymmetrisch";
         } else {
             // TODO: Add control for all symmetries
             this.behaviour[0] = "Keine Symmetrien";
         }
 
+        List<Function> functions = List.of(
+          Curve::zeroDegreeZeroes,
+          Curve::firstDegreeZeroes,
+          Curve::secondDegreeZeroes
+        );
         for (int i = 0; i < values.size(); i++) {
             if (values.get(i) > 0) {
                 this.behaviour[2] = String.valueOf(i);
@@ -128,6 +178,9 @@ public class Curve extends Pane {
         }
 
         this.behaviour[3] = String.valueOf(values.get(0));
+
+
+        setZeroesText();
     }
 
     public String getBehaviour(int index){

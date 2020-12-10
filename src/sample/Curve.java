@@ -7,6 +7,7 @@ import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
 import javafx.scene.shape.Rectangle;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 public class Curve extends Pane {
@@ -111,6 +112,108 @@ public class Curve extends Pane {
         return sum;
     }
 
+    private double rec_approx(double stepSize, double iterator) {
+        // cast j to int and back to double to fix floating point errors.
+        int temp = (int)(iterator*100.0);
+        iterator = ((double) temp / 100.0);
+        double yValue = calcYValue(iterator);
+        // basecase
+        if ( yValue == 0 ) {
+            return iterator;
+        }
+        else if ( Math.signum(yValue) != Math.signum(calcYValue(iterator+stepSize)) ) {
+            rec_approx(stepSize * 0.1, iterator);
+
+
+        }
+        return -9999;
+    }
+
+    private double approximation() {
+        double stepSize = 1;
+        int steps = 100;
+
+        for (int i = 0; i <= 100; i++) {
+            double yValue = calcYValue(i);          // Saved as var instead of calculating anew in every condition, to save calculation time.
+            if (yValue == 0) {
+                return i;
+            }
+
+            // Compares the sign of the y-value of i and the y-value of i + size of step
+            if ( Math.signum(yValue) != Math.signum(calcYValue(i+1)) ) {
+
+                if ( yValue < calcYValue(i+1) ) {
+
+                    for ( double j = i; j <= i + 1; j+=0.1 ) {
+                        // cast j to int and back to double to fix floating point errors.
+                        int temp = (int)(j*100.0);
+                        j = ((double) temp / 100.0);
+
+                        yValue = calcYValue(j);
+                        if (yValue == 0) {
+                            return j;
+                        }
+                    }
+
+                }
+
+                if ( yValue > calcYValue(i+1) ) {
+
+                    for ( double j = i; j <= i + 1; j+=0.1 ) {
+                        // cast j to int and back to double to fix floating point errors.
+                        int temp = (int)(j*100.0);
+                        j = ((double) temp / 100.0);
+
+                        yValue = calcYValue(j);
+                        if (yValue == 0) {
+                            return j;
+                        }
+                    }
+
+                } } }
+
+        for (int i = 0; i >= -100; i--) {
+            double yValue = calcYValue(i);          // Saved as var instead of calculating anew in every condition, to save calculation time.
+            if (yValue == 0) {
+                return i;
+            }
+
+            // Compares the sign of the y-value of i and the y-value of i + size of step
+            if ( Math.signum(yValue) != Math.signum(calcYValue(i-1)) ) {
+
+                if ( yValue < calcYValue(i-1) ) {
+
+                    for ( double j = i; j >= i - 1; j-=0.1 ) {
+                        // cast j to int and back to double to fix floating point errors.
+                        int temp = (int)(j*100.0);
+                        j = ((double) temp / 100.0);
+
+                        yValue = calcYValue(j);
+                        if (yValue == 0) {
+                            return j;
+                        }
+                    }
+
+                }
+
+                if ( yValue > calcYValue(i-1) ) {
+
+                    for ( double j = i; j >= i - 1; j-=0.1 ) {
+                        // cast j to int and back to double to fix floating point errors.
+                        int temp = (int)(j*100.0);
+                        j = ((double) temp / 100.0);
+
+                        yValue = calcYValue(j);
+                        if (yValue == 0) {
+                            return j;
+                        }
+                    }
+
+                } } }
+
+        return -9999;
+    }
+
     private void zeroDegreeZeroes() {
         if (values.get(0) != 0) {
             zeroes[0] = "Nicht vorhanden";
@@ -178,7 +281,9 @@ public class Curve extends Pane {
         } else if (values.get(2) != 0) {
             secondDegreeZeroes();
         } else if (values.get(1) != 0) {
-            firstDegreeZeroes();
+            zeroes[0] = String.valueOf(rec_approx(1, 0));
+            // zeroes[0] = String.valueOf(approximation());
+            // firstDegreeZeroes();
         } else if (values.get(0) != 0) {
             zeroDegreeZeroes();
         }

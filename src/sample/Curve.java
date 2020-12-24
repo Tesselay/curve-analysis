@@ -113,24 +113,38 @@ public class Curve extends Pane {
     }
 
     private double rec_approx(double stepSize, double iterator) {
-        // TODO add functionality for negative steps as well and both rising/falling
-        // cast j to int and back to double to fix floating point errors.
-        int temp = (int)(iterator*100.0);
-        iterator = ((double) temp / 100.0);
+        // TODO going above 1.0 on x leads to StackOverflow
+        // TODO large floating point zeros lead to StackOverflow
+
+        iterator = Math.round(iterator * 100) / 100.0;
+        stepSize = Math.round(stepSize * 100) / 100.0;
+
         double yValue = calcYValue(iterator);
-        temp = (int)(yValue*100.0);
-        yValue = ((double) temp / 100.0);
+        yValue = Math.round(yValue * 100) / 100.0;
+
+        double stepRoof = stepSize * 10;
+        stepRoof = Math.round(stepRoof * 100) / 100.0;
+
+        double nextStep = iterator + stepSize;
+        nextStep = Math.round(nextStep * 100) / 100.0;
+
+        double smallerStep = stepSize * 0.1;
+        smallerStep = Math.round(smallerStep * 100) / 100.0;
+
         // basecase
-        System.out.println(Math.signum(yValue));
-        System.out.println(Math.signum(calcYValue(iterator+stepSize)));
         if ( yValue == 0 ) {
             return iterator;
         }
-        else if ( Math.signum(yValue) != Math.signum(calcYValue(iterator+stepSize)) && Math.signum(calcYValue(iterator+stepSize)) != 0) {
-            iterator = rec_approx(stepSize * 0.1, iterator);
+        else if ( iterator >= stepRoof && Math.signum(stepSize) >= 0) {
+            iterator = 0;
+            stepSize = -1.0;
+            iterator = rec_approx(stepSize, iterator);
+        }
+        else if ( Math.signum(yValue) != Math.signum(calcYValue(nextStep)) && Math.signum(calcYValue(nextStep)) != 0) {
+            iterator = rec_approx(smallerStep, iterator);
         }
         else {
-            iterator = rec_approx(stepSize, iterator + stepSize);
+            iterator = rec_approx(stepSize, nextStep);
         }
         return iterator;
     }
@@ -288,8 +302,7 @@ public class Curve extends Pane {
             secondDegreeZeroes();
         } else if (values.get(1) != 0) {
             zeroes[0] = String.valueOf(rec_approx(1, 0));
-//            zeroes[0] = String.valueOf(approximation());
-            // firstDegreeZeroes();
+//             firstDegreeZeroes();
         } else if (values.get(0) != 0) {
             zeroDegreeZeroes();
         }

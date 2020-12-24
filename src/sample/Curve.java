@@ -113,20 +113,26 @@ public class Curve extends Pane {
     }
 
     private double rec_approx(double stepSize, double iterator) {
+        // TODO add functionality for negative steps as well and both rising/falling
         // cast j to int and back to double to fix floating point errors.
         int temp = (int)(iterator*100.0);
         iterator = ((double) temp / 100.0);
         double yValue = calcYValue(iterator);
+        temp = (int)(yValue*100.0);
+        yValue = ((double) temp / 100.0);
         // basecase
+        System.out.println(Math.signum(yValue));
+        System.out.println(Math.signum(calcYValue(iterator+stepSize)));
         if ( yValue == 0 ) {
             return iterator;
         }
-        else if ( Math.signum(yValue) != Math.signum(calcYValue(iterator+stepSize)) ) {
-            rec_approx(stepSize * 0.1, iterator);
-
-
+        else if ( Math.signum(yValue) != Math.signum(calcYValue(iterator+stepSize)) && Math.signum(calcYValue(iterator+stepSize)) != 0) {
+            iterator = rec_approx(stepSize * 0.1, iterator);
         }
-        return -9999;
+        else {
+            iterator = rec_approx(stepSize, iterator + stepSize);
+        }
+        return iterator;
     }
 
     private double approximation() {
@@ -282,7 +288,7 @@ public class Curve extends Pane {
             secondDegreeZeroes();
         } else if (values.get(1) != 0) {
             zeroes[0] = String.valueOf(rec_approx(1, 0));
-            // zeroes[0] = String.valueOf(approximation());
+//            zeroes[0] = String.valueOf(approximation());
             // firstDegreeZeroes();
         } else if (values.get(0) != 0) {
             zeroDegreeZeroes();

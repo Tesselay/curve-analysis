@@ -113,6 +113,8 @@ public class Curve extends Pane {
     }
 
     private double rec_approx(double stepSize, double iterator) {
+        // TODO Reimplement as mix of recursive and iterative?
+
         // TODO going above 1.0 on x leads to StackOverflow
         // TODO large floating point zeros lead to StackOverflow
 
@@ -136,9 +138,7 @@ public class Curve extends Pane {
             return iterator;
         }
         else if ( iterator >= stepRoof && Math.signum(stepSize) >= 0) {
-            iterator = 0;
-            stepSize = -1.0;
-            iterator = rec_approx(stepSize, iterator);
+            return Double.NaN;
         }
         else if ( Math.signum(yValue) != Math.signum(calcYValue(nextStep)) && Math.signum(calcYValue(nextStep)) != 0) {
             iterator = rec_approx(smallerStep, iterator);
@@ -302,6 +302,9 @@ public class Curve extends Pane {
             secondDegreeZeroes();
         } else if (values.get(1) != 0) {
             zeroes[0] = String.valueOf(rec_approx(1, 0));
+            if ( zeroes[0] == "NaN") {
+                zeroes[0] = String.valueOf(rec_approx(-1, 0));
+            }
 //             firstDegreeZeroes();
         } else if (values.get(0) != 0) {
             zeroDegreeZeroes();

@@ -100,6 +100,9 @@ public class Curve extends Pane {
             y += values.get(i) * Math.pow(x, i);
         }
 
+        // Gets precision up to 13 decimal places and up to 3 pre-decimal places
+        // Removing 0's increments the amount of possible pre-decimal places and decrements the decimal places
+        y = Math.round(y * 1000000000000L) / 1000000000000.0;
         return y;
     }
 
@@ -109,38 +112,40 @@ public class Curve extends Pane {
             sum += value;
         }
 
+        sum = Math.round(sum * 1000000000000L) / 1000000000000.0;
         return sum;
     }
 
     private double rec_approx(double stepSize, double iterator, double stepRoof) {
-        // TODO Reimplement as mix of recursive and iterative?
+        // TODO BigDecimal instead of floating points
 
-        // TODO going above 10.0 on x leads to StackOverflow, going below -10.0 doesnt
-        // TODO large floating point zeros lead to StackOverflow
-
-        iterator = Math.round(iterator * 100) / 100.0;
-        stepSize = Math.round(stepSize * 100) / 100.0;
-        stepRoof = Math.round(stepRoof * 100) / 100.0;
+        // The precision is two decimal places higher than the y-value, to ensure, that the zeroes can be found within the frame
+        iterator = Math.round(iterator * 1000000000000000L) / 1000000000000000.0;
+        stepSize = Math.round(stepSize * 1000000000000000L) / 1000000000000000.0;
+        stepRoof = Math.round(stepRoof * 1000000000000000L) / 1000000000000000.0;
 
         double yValue = calcYValue(iterator);
-        yValue = Math.round(yValue * 100) / 100.0;
+        yValue = Math.round(yValue * 1000000000000000L) / 1000000000000000.0;         // Values are larger to enable more precise display of values
 
 
         double nextStep = iterator + stepSize;
-        nextStep = Math.round(nextStep * 100) / 100.0;
+        nextStep = Math.round(nextStep * 1000000000000000L) / 1000000000000000.0;
 
         double smallerStep = stepSize * 0.1;
-        smallerStep = Math.round(smallerStep * 100) / 100.0;
+        smallerStep = Math.round(smallerStep * 1000000000000000L) / 1000000000000000.0;           // Values are larger to enable steps down to a factor of 1 * 10^(-12)
 
         // basecase
         if ( yValue == 0 ) {
             return iterator;
         }
         else if ( iterator >= stepRoof && Math.signum(stepSize) >= 0) {
-            return Double.NaN;
+            iterator = rec_approx(-1.0, 0.0, -100.0);
+//            return Double.NaN;          // NaN is used as a error-message to signal no value was found up to the step roof
         }
         else if ( Math.signum(yValue) != Math.signum(calcYValue(nextStep)) && Math.signum(calcYValue(nextStep)) != 0) {
-            iterator = rec_approx(smallerStep, iterator, (stepRoof / 10 + iterator));
+            double newStepRoof = stepRoof / 10 + iterator;
+            newStepRoof = Math.round(newStepRoof * 1000000000000000L) / 1000000000000000.0;
+            iterator = rec_approx(smallerStep, iterator, newStepRoof);
         }
         else {
             iterator = rec_approx(stepSize, nextStep, stepRoof);
@@ -300,9 +305,9 @@ public class Curve extends Pane {
         } else if (values.get(2) != 0) {
             secondDegreeZeroes();
         } else if (values.get(1) != 0) {
-            zeroes[0] = String.valueOf(rec_approx(1, 0, 10));
+            zeroes[0] = String.valueOf(rec_approx(1, 0, 100));
             if ( zeroes[0] == "NaN") {
-                zeroes[0] = String.valueOf(rec_approx(-1, 0, -10));
+                zeroes[0] = String.valueOf(rec_approx(-1, 0, -100));
             }
 //             firstDegreeZeroes();
         } else if (values.get(0) != 0) {

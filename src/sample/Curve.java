@@ -112,18 +112,19 @@ public class Curve extends Pane {
         return sum;
     }
 
-    private double rec_approx(double stepSize, double iterator) {
-        // TODO going above 1.0 on x leads to StackOverflow
+    private double rec_approx(double stepSize, double iterator, double stepRoof) {
+        // TODO Reimplement as mix of recursive and iterative?
+
+        // TODO going above 10.0 on x leads to StackOverflow, going below -10.0 doesnt
         // TODO large floating point zeros lead to StackOverflow
 
         iterator = Math.round(iterator * 100) / 100.0;
         stepSize = Math.round(stepSize * 100) / 100.0;
+        stepRoof = Math.round(stepRoof * 100) / 100.0;
 
         double yValue = calcYValue(iterator);
         yValue = Math.round(yValue * 100) / 100.0;
 
-        double stepRoof = stepSize * 10;
-        stepRoof = Math.round(stepRoof * 100) / 100.0;
 
         double nextStep = iterator + stepSize;
         nextStep = Math.round(nextStep * 100) / 100.0;
@@ -136,15 +137,13 @@ public class Curve extends Pane {
             return iterator;
         }
         else if ( iterator >= stepRoof && Math.signum(stepSize) >= 0) {
-            iterator = 0;
-            stepSize = -1.0;
-            iterator = rec_approx(stepSize, iterator);
+            return Double.NaN;
         }
         else if ( Math.signum(yValue) != Math.signum(calcYValue(nextStep)) && Math.signum(calcYValue(nextStep)) != 0) {
-            iterator = rec_approx(smallerStep, iterator);
+            iterator = rec_approx(smallerStep, iterator, (stepRoof / 10 + iterator));
         }
         else {
-            iterator = rec_approx(stepSize, nextStep);
+            iterator = rec_approx(stepSize, nextStep, stepRoof);
         }
         return iterator;
     }
@@ -301,7 +300,10 @@ public class Curve extends Pane {
         } else if (values.get(2) != 0) {
             secondDegreeZeroes();
         } else if (values.get(1) != 0) {
-            zeroes[0] = String.valueOf(rec_approx(1, 0));
+            zeroes[0] = String.valueOf(rec_approx(1, 0, 10));
+            if ( zeroes[0] == "NaN") {
+                zeroes[0] = String.valueOf(rec_approx(-1, 0, -10));
+            }
 //             firstDegreeZeroes();
         } else if (values.get(0) != 0) {
             zeroDegreeZeroes();

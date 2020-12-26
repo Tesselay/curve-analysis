@@ -118,128 +118,48 @@ public class Curve extends Pane {
 
     private double rec_approx(double stepSize, double iterator, double stepRoof) {
         // TODO BigDecimal instead of floating points
-        // TODO instead of Z. 143-146 => When stepRoof is reached, make stepRoof larger up until certain point.
+        // TODO add functionality for higher degree function <- How can I make sure that it looks for three possible points?
 
         // The precision is two decimal places higher than the y-value, to ensure, that the zeroes can be found within the frame
-        iterator = Math.round(iterator * 1000000000000000L) / 1000000000000000.0;
-        stepSize = Math.round(stepSize * 1000000000000000L) / 1000000000000000.0;
-        stepRoof = Math.round(stepRoof * 1000000000000000L) / 1000000000000000.0;
+        iterator = Math.round(iterator * 100000000000000L) / 100000000000000.0;
+        stepSize = Math.round(stepSize * 100000000000000L) / 100000000000000.0;
+        stepRoof = Math.round(stepRoof * 100000000000000L) / 100000000000000.0;
 
         double yValue = calcYValue(iterator);
-        yValue = Math.round(yValue * 1000000000000000L) / 1000000000000000.0;         // Values are larger to enable more precise display of values
+        yValue = Math.round(yValue * 100000000000000L) / 100000000000000.0;         // Values are larger to enable more precise display of values
 
 
         double nextStep = iterator + stepSize;
-        nextStep = Math.round(nextStep * 1000000000000000L) / 1000000000000000.0;
+        nextStep = Math.round(nextStep * 100000000000000L) / 100000000000000.0;
 
         double smallerStep = stepSize * 0.1;
-        smallerStep = Math.round(smallerStep * 1000000000000000L) / 1000000000000000.0;           // Values are larger to enable steps down to a factor of 1 * 10^(-12)
+        smallerStep = Math.round(smallerStep * 100000000000000L) / 100000000000000.0;           // Values are larger to enable steps down to a factor of 1 * 10^(-12)
 
         // basecase
         if ( yValue == 0 ) {
             return iterator;
         }
-        else if ( stepRoof >= 10000 ) {
+        else if ( iterator >= 1000 ) {
+            iterator = rec_approx(-stepSize, 0.0, -100);
+        }
+        else if ( iterator <= -1000 ) {
             return Double.NaN;
         }
-        else if ( iterator >= stepRoof && Math.signum(stepSize) >= 0) {
-            iterator = rec_approx(-1.0, 0.0, -100.0);
+        else if ( Math.abs(iterator) >= Math.abs(stepRoof) && Math.signum(Math.abs(stepSize)) >= 0 ) {
+            double nextRoof = stepRoof * 10.0;
+            nextRoof = Math.round(nextRoof * 100000000000000L) / 100000000000000.0;
+            iterator = rec_approx(stepSize, iterator, nextRoof);
 //            return Double.NaN;          // NaN is used as a error-message to signal no value was found up to the step roof
         }
         else if ( Math.signum(yValue) != Math.signum(calcYValue(nextStep)) && Math.signum(calcYValue(nextStep)) != 0) {
             double newStepRoof = stepRoof / 10 + iterator;
-            newStepRoof = Math.round(newStepRoof * 1000000000000000L) / 1000000000000000.0;
+            newStepRoof = Math.round(newStepRoof * 100000000000000L) / 100000000000000.0;
             iterator = rec_approx(smallerStep, iterator, newStepRoof);
         }
         else {
             iterator = rec_approx(stepSize, nextStep, stepRoof);
         }
         return iterator;
-    }
-
-    private double approximation() {
-        double stepSize = 1;
-        int steps = 100;
-
-        for (int i = 0; i <= 100; i++) {
-            double yValue = calcYValue(i);          // Saved as var instead of calculating anew in every condition, to save calculation time.
-            if (yValue == 0) {
-                return i;
-            }
-
-            // Compares the sign of the y-value of i and the y-value of i + size of step
-            if ( Math.signum(yValue) != Math.signum(calcYValue(i+1)) ) {
-
-                if ( yValue < calcYValue(i+1) ) {
-
-                    for ( double j = i; j <= i + 1; j+=0.1 ) {
-                        // cast j to int and back to double to fix floating point errors.
-                        int temp = (int)(j*100.0);
-                        j = ((double) temp / 100.0);
-
-                        yValue = calcYValue(j);
-                        if (yValue == 0) {
-                            return j;
-                        }
-                    }
-
-                }
-
-                if ( yValue > calcYValue(i+1) ) {
-
-                    for ( double j = i; j <= i + 1; j+=0.1 ) {
-                        // cast j to int and back to double to fix floating point errors.
-                        int temp = (int)(j*100.0);
-                        j = ((double) temp / 100.0);
-
-                        yValue = calcYValue(j);
-                        if (yValue == 0) {
-                            return j;
-                        }
-                    }
-
-                } } }
-
-        for (int i = 0; i >= -100; i--) {
-            double yValue = calcYValue(i);          // Saved as var instead of calculating anew in every condition, to save calculation time.
-            if (yValue == 0) {
-                return i;
-            }
-
-            // Compares the sign of the y-value of i and the y-value of i + size of step
-            if ( Math.signum(yValue) != Math.signum(calcYValue(i-1)) ) {
-
-                if ( yValue < calcYValue(i-1) ) {
-
-                    for ( double j = i; j >= i - 1; j-=0.1 ) {
-                        // cast j to int and back to double to fix floating point errors.
-                        int temp = (int)(j*100.0);
-                        j = ((double) temp / 100.0);
-
-                        yValue = calcYValue(j);
-                        if (yValue == 0) {
-                            return j;
-                        }
-                    }
-
-                }
-
-                if ( yValue > calcYValue(i-1) ) {
-
-                    for ( double j = i; j >= i - 1; j-=0.1 ) {
-                        // cast j to int and back to double to fix floating point errors.
-                        int temp = (int)(j*100.0);
-                        j = ((double) temp / 100.0);
-
-                        yValue = calcYValue(j);
-                        if (yValue == 0) {
-                            return j;
-                        }
-                    }
-
-                } } }
-
-        return -9999;
     }
 
     private void zeroDegreeZeroes() {
@@ -265,11 +185,11 @@ public class Curve extends Pane {
         // f(x) = ax^2 + bx + c -- p = b/a, q = c/a --> f(x) = ax^2 + p + q
         double p = values.get(1) / values.get(2);
         double q = values.get(0) / values.get(2);
-        double precedEquation = (-1 * p) / 2;
+        double precedeEquation = (-1 * p) / 2;
         double sqrtEquation = Math.sqrt(Math.pow((p / 2), 2) - q);
 
-        zeroes[0] = String.valueOf(precedEquation + sqrtEquation);
-        zeroes[1] = String.valueOf(precedEquation - sqrtEquation);
+        zeroes[0] = String.valueOf(precedeEquation + sqrtEquation);
+        zeroes[1] = String.valueOf(precedeEquation - sqrtEquation);
         zeroes[2] = "Nicht vorhanden";
     }
 
@@ -307,13 +227,13 @@ public class Curve extends Pane {
         } else if (values.get(3) != 0) {
             thirdDegreeZeroes();
         } else if (values.get(2) != 0) {
-            secondDegreeZeroes();
-        } else if (values.get(1) != 0) {
             zeroes[0] = String.valueOf(rec_approx(1, 0, 100));
-//            if ( zeroes[0] == "NaN") {
-//                zeroes[0] = String.valueOf(rec_approx(-1, 0, -100));
-//            }
-//             firstDegreeZeroes();
+            if ( zeroes[0] == "NaN") {
+                zeroes[0] = "No value found!";
+            }
+            //            secondDegreeZeroes();
+        } else if (values.get(1) != 0) {
+            firstDegreeZeroes();
         } else if (values.get(0) != 0) {
             zeroDegreeZeroes();
         }

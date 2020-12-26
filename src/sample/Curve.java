@@ -100,9 +100,9 @@ public class Curve extends Pane {
             y += values.get(i) * Math.pow(x, i);
         }
 
-        // Gets precision up to 13 decimal places and up to 3 pre-decimal places
+        // Gets precision up to 12 decimal places and up to 4 pre-decimal places
         // Removing 0's increments the amount of possible pre-decimal places and decrements the decimal places
-        y = Math.round(y * 1000000000000L) / 1000000000000.0;
+        y = Math.round(y * 100000000000L) / 100000000000.0;
         return y;
     }
 
@@ -112,12 +112,13 @@ public class Curve extends Pane {
             sum += value;
         }
 
-        sum = Math.round(sum * 1000000000000L) / 1000000000000.0;
+        sum = Math.round(sum * 100000000000L) / 100000000000.0;
         return sum;
     }
 
     private double rec_approx(double stepSize, double iterator, double stepRoof) {
         // TODO BigDecimal instead of floating points
+        // TODO instead of Z. 143-146 => When stepRoof is reached, make stepRoof larger up until certain point.
 
         // The precision is two decimal places higher than the y-value, to ensure, that the zeroes can be found within the frame
         iterator = Math.round(iterator * 1000000000000000L) / 1000000000000000.0;
@@ -137,6 +138,9 @@ public class Curve extends Pane {
         // basecase
         if ( yValue == 0 ) {
             return iterator;
+        }
+        else if ( stepRoof >= 10000 ) {
+            return Double.NaN;
         }
         else if ( iterator >= stepRoof && Math.signum(stepSize) >= 0) {
             iterator = rec_approx(-1.0, 0.0, -100.0);
@@ -306,9 +310,9 @@ public class Curve extends Pane {
             secondDegreeZeroes();
         } else if (values.get(1) != 0) {
             zeroes[0] = String.valueOf(rec_approx(1, 0, 100));
-            if ( zeroes[0] == "NaN") {
-                zeroes[0] = String.valueOf(rec_approx(-1, 0, -100));
-            }
+//            if ( zeroes[0] == "NaN") {
+//                zeroes[0] = String.valueOf(rec_approx(-1, 0, -100));
+//            }
 //             firstDegreeZeroes();
         } else if (values.get(0) != 0) {
             zeroDegreeZeroes();

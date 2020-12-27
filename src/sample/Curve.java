@@ -102,7 +102,7 @@ public class Curve extends Pane {
 
         // Gets precision up to 12 decimal places and up to 4 pre-decimal places
         // Removing 0's increments the amount of possible pre-decimal places and decrements the decimal places
-        y = Math.round(y * 100000000000L) / 100000000000.0;
+        y = Math.round(y * 1_000_000_000_00L) / 1_000_000_000_00.0;
         return y;
     }
 
@@ -112,7 +112,7 @@ public class Curve extends Pane {
             sum += value;
         }
 
-        sum = Math.round(sum * 100000000000L) / 100000000000.0;
+        sum = Math.round(sum * 1_000_000_000_00L) / 1_000_000_000_00.0;
         return sum;
     }
 
@@ -121,19 +121,19 @@ public class Curve extends Pane {
         // TODO add functionality for higher degree function <- How can I make sure that it looks for three possible points?
 
         // The precision is two decimal places higher than the y-value, to ensure, that the zeroes can be found within the frame
-        iterator = Math.round(iterator * 100000000000000L) / 100000000000000.0;
-        stepSize = Math.round(stepSize * 100000000000000L) / 100000000000000.0;
-        stepRoof = Math.round(stepRoof * 100000000000000L) / 100000000000000.0;
+        iterator = Math.round(iterator * 1_000_000_000_000_00L) / 1_000_000_000_000_00.0;
+        stepSize = Math.round(stepSize * 1_000_000_000_000_00L) / 1_000_000_000_000_00.0;
+        stepRoof = Math.round(stepRoof * 1_000_000_000_000_00L) / 1_000_000_000_000_00.0;
 
         double yValue = calcYValue(iterator);
-        yValue = Math.round(yValue * 100000000000000L) / 100000000000000.0;         // Values are larger to enable more precise display of values
+        yValue = Math.round(yValue * 1_000_000_000_000_00L) / 1_000_000_000_000_00.0;         // Values are larger to enable more precise display of values
 
 
         double nextStep = iterator + stepSize;
-        nextStep = Math.round(nextStep * 100000000000000L) / 100000000000000.0;
+        nextStep = Math.round(nextStep * 1_000_000_000_000_00L) / 1_000_000_000_000_00.0;
 
         double smallerStep = stepSize * 0.1;
-        smallerStep = Math.round(smallerStep * 100000000000000L) / 100000000000000.0;           // Values are larger to enable steps down to a factor of 1 * 10^(-12)
+        smallerStep = Math.round(smallerStep * 1_000_000_000_000_00L) / 1_000_000_000_000_00.0;           // Values are larger to enable steps down to a factor of 1 * 10^(-12)
 
         // basecase
         if ( yValue == 0 ) {
@@ -147,13 +147,13 @@ public class Curve extends Pane {
         }
         else if ( Math.abs(iterator) >= Math.abs(stepRoof) && Math.signum(Math.abs(stepSize)) >= 0 ) {
             double nextRoof = stepRoof * 10.0;
-            nextRoof = Math.round(nextRoof * 100000000000000L) / 100000000000000.0;
+            nextRoof = Math.round(nextRoof * 1_000_000_000_000_00L) / 1_000_000_000_000_00.0;
             iterator = rec_approx(stepSize, iterator, nextRoof);
 //            return Double.NaN;          // NaN is used as a error-message to signal no value was found up to the step roof
         }
         else if ( Math.signum(yValue) != Math.signum(calcYValue(nextStep)) && Math.signum(calcYValue(nextStep)) != 0) {
             double newStepRoof = stepRoof / 10 + iterator;
-            newStepRoof = Math.round(newStepRoof * 100000000000000L) / 100000000000000.0;
+            newStepRoof = Math.round(newStepRoof * 1_000_000_000_000_00L) / 1_000_000_000_000_00.0;
             iterator = rec_approx(smallerStep, iterator, newStepRoof);
         }
         else {

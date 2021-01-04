@@ -182,11 +182,11 @@ public class Curve extends Pane {
             if ( stepSize.compareTo(new BigDecimal("0")) > 0 ) {
                 iterator = iterator.add(stepSize);
                 stepSize = new BigDecimal("1");
-                stepRoof = new BigDecimal("100");
+                stepRoof = maxRoof;
             } else if ( stepSize.compareTo(new BigDecimal("0")) < 0 ) {
                 iterator = iterator.add(stepSize);
                 stepSize = new BigDecimal("-1");
-                stepRoof = new BigDecimal("-100");
+                stepRoof = maxRoof.negate();
             }
 
             iterator = rec_approxBD(stepSize, iterator, stepRoof);

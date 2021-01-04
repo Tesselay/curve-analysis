@@ -7,8 +7,22 @@ import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
 import javafx.scene.shape.Rectangle;
 
-import java.text.DecimalFormat;
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Arrays;
+
+// TODO Replace doubles with BigDecimal
+// TODO Optimization and refactoring
+// TODO add signChange search as own method
+// TODO Streamline naming for not found zero points
+// TODO is zeroes[] emptier needed?
+// TODO Add control for all kind of symmetries
+// TODO Add enum (or similar) to get function references in a list to iterate through
+// TODO Refactor zero point search to search until no value is found anymore
+// TODO Make gui pretty
+// FIXME deeper search for double sign changes leads to buggy behavious
 
 public class Curve extends Pane {
 
@@ -19,7 +33,10 @@ public class Curve extends Pane {
     private Axes axes;
     private Path path;
     private String[] behaviour = {"","","","",""};
-    private String[] zeroes = {"", "", ""};
+    private String[] zeroes = {"", "", "", ""};
+
+    private int decimalPlaces = 10;
+    private int COUNT = 0;
 
     public Curve(
             ArrayList<Double> values,
@@ -35,7 +52,6 @@ public class Curve extends Pane {
         draw();
         analyseBehaviour();
     }
-
 
     private void draw(){
 
@@ -93,16 +109,6 @@ public class Curve extends Pane {
         return -y * sy + ty;
     }
 
-    // Gets precision up to 12 decimal places and up to 4 pre-decimal places
-    // Removing 0's increments the amount of possible pre-decimal places and decrements the decimal places
-
-    // The precision is two decimal places higher than the y-value, to ensure, that the zeroes can be found within the frame
-    long ROUNDER_HIGH = 1_000_000_000_0L;
-    long ROUNDER_LOW =  1_000_000_000L;
-    double DIVISOR_HIGH = 1_000_000_000_0.0;
-    double DIVISOR_LOW =  1_000_000_000.0;
-
-
     private double calcYValue(double x){
         double y = 0;
 
@@ -110,8 +116,6 @@ public class Curve extends Pane {
             y += values.get(i) * Math.pow(x, i);
         }
 
-
-        y = Math.round(y * ROUNDER_LOW) / DIVISOR_LOW;
         return y;
     }
 
@@ -121,52 +125,133 @@ public class Curve extends Pane {
             sum += value;
         }
 
-        sum = Math.round(sum * ROUNDER_LOW) / DIVISOR_LOW;
         return sum;
     }
 
-    private double rec_approx(double stepSize, double iterator, double stepRoof) {
-        // TODO BigDecimal instead of floating points
-        // TODO add functionality for higher degree function <- How can I make sure that it looks for three possible points?
+    private BigDecimal calcYValueBD(BigDecimal x) {
+        BigDecimal y = new BigDecimal("0", MathContext.DECIMAL128);
 
-        iterator = Math.round(iterator * ROUNDER_HIGH) / DIVISOR_HIGH;
-        stepSize = Math.round(stepSize * ROUNDER_HIGH) / DIVISOR_HIGH;
-        stepRoof = Math.round(stepRoof * ROUNDER_HIGH) / DIVISOR_HIGH;
+        for ( int i = 0; i < values.size(); i++ ) {
+            BigDecimal tempValue = new BigDecimal( String.valueOf(values.get(i)) );
+            BigDecimal powerTo = x.pow(i);
+            BigDecimal newTemp = tempValue.multiply(powerTo);
+            y = y.add(newTemp, MathContext.DECIMAL64);
+        }
 
-        double yValue = calcYValue(iterator);
-        yValue = Math.round(yValue * ROUNDER_HIGH) / DIVISOR_HIGH;         // Values are larger to enable more precise display of values
+        y = y.setScale(15, RoundingMode.DOWN);
+        y = y.stripTrailingZeros();
+
+        return y;
+    }
+
+    private BigDecimal getSumBD(ArrayList<Double> values) {
+        BigDecimal sum = new BigDecimal("0");
+        for ( Double value: values ) {
+            BigDecimal tempValue = new BigDecimal(String.valueOf(value));
+            sum = sum.add(tempValue);
+        }
+
+        sum = sum.setScale(15, RoundingMode.DOWN);
+        sum = sum.stripTrailingZeros();
+
+        return sum;
+    }
+
+    private void rec_runThroughBD() {
+        while (zeroes[0].equals("") || zeroes[1].equals("") || zeroes[2].equals("") || zeroes[3].equals("")) {
+
+            BigDecimal zero = rec_approxBD(new BigDecimal("1"), new BigDecimal("0"), new BigDecimal("10"));
+            COUNT = 0;
+
+            for ( int i = 0 ; i <= zeroes.length ; i++ ) {
+                if (zeroes[i].equals("")) {
+                    zeroes[i] = zero.setScale(13, RoundingMode.DOWN).stripTrailingZeros().toString();
+                    break;
+                }
+            }
+        }
 
 
-        double nextStep = iterator + stepSize;
-        nextStep = Math.round(nextStep * ROUNDER_HIGH) / DIVISOR_HIGH;
+    }
 
-        double smallerStep = stepSize * 0.1;
-        smallerStep = Math.round(smallerStep * ROUNDER_HIGH) / DIVISOR_HIGH;           // Values are larger to enable steps down to a factor of 1 * 10^(-12)
+    private BigDecimal rec_approxBD(BigDecimal stepSize, BigDecimal iterator, BigDecimal stepRoof) {
 
-        // basecase
-        if ( yValue == 0 ) {
+        for ( int i = 0; i <= 2; i++ ) {
 
+            if (stepSize.abs().compareTo(new BigDecimal("1")) < 0 ) {
+                break;
+            }
+
+            BigDecimal testStepSize = stepSize.divide(new BigDecimal("10").pow(i));
+
+            for ( BigDecimal ii = iterator; ii.abs().compareTo(iterator.add(stepSize).abs()) < 1; ii = ii.add(testStepSize) ) {
+                System.out.println("step: " + ii.toString());
+
+                System.out.println("y(" + iterator + ") = " + calcYValueBD(iterator));
+                System.out.println("y(" + ii + ") = " + calcYValueBD(ii));
+
+                if ( calcYValueBD(iterator).signum() != calcYValueBD(ii).signum()) {
+                    System.out.println("FOUND");
+
+                    iterator = ii.subtract(testStepSize);
+                    stepSize = testStepSize;
+
+                    System.out.println("iterator: " + iterator);
+                    System.out.println("stepSize: " + stepSize);
+
+                    i = 5;
+                    break;
+                }
+            }
+
+        }
+
+        BigDecimal yValue = calcYValueBD(iterator);
+
+        BigDecimal nextStep = iterator.add(stepSize);
+        nextStep = nextStep.stripTrailingZeros();
+
+        BigDecimal smaller = new BigDecimal("0.1");
+        BigDecimal smallerStep = stepSize.multiply(smaller);
+        smallerStep = smallerStep.stripTrailingZeros();
+
+        if (
+                yValue.equals(new BigDecimal("0"))
+                && Arrays.stream(zeroes).noneMatch(iterator.setScale(13, RoundingMode.DOWN).stripTrailingZeros().toString()::equals)
+        ) {
             return iterator;
         }
-        else if ( iterator >= 1000 ) {
-            iterator = rec_approx(-stepSize, 0.0, -100);
+        else if ( Arrays.stream(zeroes).anyMatch(iterator.setScale(13, RoundingMode.DOWN).stripTrailingZeros().toString()::equals) ) {
+
+            if ( stepSize.compareTo(new BigDecimal("0")) > 0 ) {
+                iterator = iterator.add(stepSize);
+                stepSize = new BigDecimal("1");
+                stepRoof = new BigDecimal("100");
+            } else if ( stepSize.compareTo(new BigDecimal("0")) < 0 ) {
+                iterator = iterator.add(stepSize);
+                stepSize = new BigDecimal("-1");
+                stepRoof = new BigDecimal("-100");
+            }
+
+            iterator = rec_approxBD(stepSize, iterator, stepRoof);
         }
-        else if ( iterator <= -1000 ) {
-            return Double.NaN;
+        else if ( iterator.compareTo(new BigDecimal("1E+1")) > 0 ) {
+            iterator = rec_approxBD( new BigDecimal("-1"), new BigDecimal("0"), new BigDecimal("-100") );
         }
-        else if ( Math.abs(iterator) >= Math.abs(stepRoof) && Math.signum(Math.abs(stepSize)) >= 0 ) {
-            double nextRoof = stepRoof * 10.0;
-            nextRoof = Math.round(nextRoof * ROUNDER_HIGH) / DIVISOR_HIGH;
-            iterator = rec_approx(stepSize, iterator, nextRoof);
-//            return Double.NaN;          // NaN is used as a error-message to signal no value was found up to the step roof
+        else if ( iterator.compareTo(new BigDecimal("-1E+1")) < 0 ) {
+            return new BigDecimal("-99999999");
         }
-        else if ( Math.signum(yValue) != Math.signum(calcYValue(nextStep)) && Math.signum(calcYValue(nextStep)) != 0) {
-            double newStepRoof = stepRoof / 10 + iterator;
-            newStepRoof = Math.round(newStepRoof * ROUNDER_HIGH) / DIVISOR_HIGH;
-            iterator = rec_approx(smallerStep, iterator, newStepRoof);
+        else if ( (iterator.abs()).compareTo(stepRoof.abs()) > 0 && stepSize.abs().signum() >= 0 ) {
+            BigDecimal nextRoof = stepRoof.multiply( new BigDecimal("10") );
+            iterator = rec_approxBD(stepSize, iterator, nextRoof);
+        }
+        else if ( yValue.signum() != calcYValueBD(nextStep).signum() && calcYValueBD(nextStep).signum() != 0 ) {
+            BigDecimal newStepRoof = stepRoof.divide( new BigDecimal("10") );
+            newStepRoof = newStepRoof.add(iterator);
+            iterator = rec_approxBD(smallerStep, iterator, newStepRoof);
         }
         else {
-            iterator = rec_approx(stepSize, nextStep, stepRoof);
+            iterator = rec_approxBD(stepSize, nextStep, stepRoof);
         }
         return iterator;
     }
@@ -214,13 +299,18 @@ public class Curve extends Pane {
         zeroes[2] = "jjj Nicht vorhanden";
     }
 
+    private void emptyZeroes() {
+        zeroes[0] = "";
+        zeroes[1] = "";
+        zeroes[2] = "";
+    }
+
     private void analyseBehaviour(){
         if (this.getSum(values) != 0 && values.get(3) == 0 && values.get(1) == 0) {
             this.behaviour[0] = "Achsensymmetrisch";
         } else if (this.getSum(values) != 0 && values.get(4) == 0 && values.get(2) == 0 && values.get(0) == 0) {
             this.behaviour[0] = "Punktsymmetrisch";
         } else {
-            // TODO: Add control for all symmetries
             this.behaviour[0] = "Keine Symmetrien";
         }
 
@@ -230,29 +320,26 @@ public class Curve extends Pane {
             }
         }
 
-        // TODO: Add enum (or similar) to get function references in a list to iterate through
         if (values.get(4) != 0) {
-            fourthDegreeZeroes();
+            emptyZeroes();
+            rec_runThroughBD();
         } else if (values.get(3) != 0) {
-            thirdDegreeZeroes();
+            emptyZeroes();
+            rec_runThroughBD();
         } else if (values.get(2) != 0) {
-            zeroes[0] = String.valueOf(rec_approx(1, 0, 100));
-            if ( zeroes[0] == "NaN") {
-                zeroes[0] = "No value found!";
-            }
+            emptyZeroes();
+            rec_runThroughBD();
             //            secondDegreeZeroes();
         } else if (values.get(1) != 0) {
-            zeroes[0] = String.valueOf(rec_approx(1, 0, 100));
-            if ( zeroes[0] == "NaN") {
-                zeroes[0] = "No value found!";
-            }
+            emptyZeroes();
+            rec_runThroughBD();
 //            firstDegreeZeroes();
         } else if (values.get(0) != 0) {
             zeroDegreeZeroes();
         }
 
         this.behaviour[3] = String.valueOf(values.get(0));
-        this.behaviour[4] = String.format("1. Nullstelle: %s\n2. Nullstelle: %s\n3. Nullstelle: %s", zeroes[0], zeroes[1], zeroes[2]);
+        this.behaviour[4] = String.format("1. Nullstelle: %s\n2. Nullstelle: %s\n3. Nullstelle: %s\n4. Nullstelle: %s", zeroes[0], zeroes[1], zeroes[2], zeroes[3]);
 
     }
 

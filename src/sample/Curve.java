@@ -16,7 +16,6 @@ import java.util.Arrays;
 
 // TODO Replace doubles with BigDecimal where sensible
 // TODO Optimization and refactoring
-// TODO Add control for all kind of symmetries
 // TODO Add enum (or similar) to get function references in a list to iterate through
 // TODO Refactor zero point search to search until no value is found anymore
 // TODO Make gui pretty
@@ -257,9 +256,9 @@ public class Curve extends Pane {
 
     private void analyseSymmetries() {
         if (this.getSum(values) != 0 && values.get(3) == 0 && values.get(1) == 0) {
-            this.behaviour[0] = "Axis symmetrical";
+            this.behaviour[0] = "Even symmetry";
         } else if (this.getSum(values) != 0 && values.get(4) == 0 && values.get(2) == 0 && values.get(0) == 0) {
-            this.behaviour[0] = "Point symmetrical";
+            this.behaviour[0] = "Odd symmetry";
         } else {
             this.behaviour[0] = "No symmetries";
         }

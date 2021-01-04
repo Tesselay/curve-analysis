@@ -22,6 +22,7 @@ import java.util.Arrays;
 // TODO Add enum (or similar) to get function references in a list to iterate through
 // TODO Refactor zero point search to search until no value is found anymore
 // TODO Make gui pretty
+// TODO increase step roof
 // FIXME deeper search for double sign changes leads to buggy behavious
 
 public class Curve extends Pane {

@@ -176,8 +176,10 @@ public class Curve extends Pane {
     }
 
     private BigDecimal rec_approxBD(BigDecimal stepSize, BigDecimal iterator, BigDecimal stepRoof) {
+        // FIXME -230.44x^4 -18.7x^3  +6.8x^2 +2.5 <- for loop looks in really small steps, should only look at highest val tho
 
-        for ( int i = 0; i <= 2; i++ ) {
+
+        for ( int i = 0; i <= 3; i++ ) {
 
             if (stepSize.abs().compareTo(new BigDecimal("1")) < 0 ) {
                 break;

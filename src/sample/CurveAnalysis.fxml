@@ -4,11 +4,11 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<FlowPane minHeight="1000" minWidth="800" prefHeight="800.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.CurveAnalysisController">
+<FlowPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.CurveAnalysisController">
     <HBox>
         <VBox style="-fx-border-color: black">
             <GridPane>
-                <Label text="f(x) = "  GridPane.columnIndex="0" GridPane.rowIndex="0" GridPane.halignment="RIGHT"/>
+                <Label text="f(x) = " GridPane.columnIndex="0" GridPane.rowIndex="0" GridPane.halignment="RIGHT"/>
                 <Label fx:id="lx4" GridPane.columnIndex="1" GridPane.rowIndex="0" GridPane.halignment="RIGHT"/>
                 <Label fx:id="lx3" GridPane.columnIndex="2" GridPane.rowIndex="0" GridPane.halignment="RIGHT"/>
                 <Label fx:id="lx2" GridPane.columnIndex="3" GridPane.rowIndex="0" GridPane.halignment="RIGHT"/>
@@ -16,15 +16,11 @@
                 <Label fx:id="lx" GridPane.columnIndex="5" GridPane.rowIndex="0" GridPane.halignment="RIGHT"/>
 
 
-                <Spinner prefWidth="40" editable="true" amountToStepBy="0.1" initialValue="0." max="100000." min="-10000." fx:id="x4" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-                <Spinner prefWidth="40" editable="true" amountToStepBy="0.1" initialValue="0." max="100000." min="-10000." fx:id="x3" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
-                <Spinner prefWidth="40" editable="true" amountToStepBy="0.1" initialValue="0." max="100000." min="-10000." fx:id="x2" GridPane.columnIndex="3" GridPane.rowIndex="1"/>
-                <Spinner prefWidth="40" editable="true" amountToStepBy="0.1" initialValue="0." max="100000." min="-10000." fx:id="x1" GridPane.columnIndex="4" GridPane.rowIndex="1"/>
-                <Spinner prefWidth="40" editable="true" fx:id="x0" GridPane.columnIndex="5" GridPane.rowIndex="1">
-                    <valueFactory>
-                        <SpinnerValueFactory.DoubleSpinnerValueFactory amountToStepBy="0.1" initialValue="0.0" max="10000.0" min="-10000.0" />
-                    </valueFactory>
-                </Spinner>
+                <Spinner prefWidth="40" editable="true" amountToStepBy="0.1" initialValue="0." max="10000." min="-10000." fx:id="x4" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                <Spinner prefWidth="40" editable="true" amountToStepBy="0.1" initialValue="0." max="10000." min="-10000." fx:id="x3" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                <Spinner prefWidth="40" editable="true" amountToStepBy="0.1" initialValue="0." max="10000." min="-10000." fx:id="x2" GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+                <Spinner prefWidth="40" editable="true" amountToStepBy="0.1" initialValue="0." max="10000." min="-10000." fx:id="x1" GridPane.columnIndex="4" GridPane.rowIndex="1"/>
+                <Spinner prefWidth="40" editable="true" amountToStepBy="0.1" initialValue="0." max="10000." min="-10000." fx:id="x0" GridPane.columnIndex="5" GridPane.rowIndex="1"/>
 
             </GridPane>
             <Label fx:id ="completeCurve" />
@@ -42,9 +38,5 @@
         <StackPane fx:id="myPane" minHeight="600" minWidth="800" style="-fx-background-color: white">
             <Axes fx:id="myAxes" />
         </StackPane>
-
-
-
     </HBox>
-
 </FlowPane>

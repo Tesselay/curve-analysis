@@ -9,13 +9,11 @@ import javafx.scene.shape.Rectangle;
 import javafx.util.Pair;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 // TODO Replace doubles with BigDecimal where sensible
-// TODO Optimization and refactoring
 // TODO Add enum (or similar) to get function references in a list to iterate through
 // TODO Refactor zero point search to search until no value is found anymore
 // TODO Make gui pretty
@@ -23,6 +21,7 @@ import java.util.Arrays;
 // TODO improve performance
     // instead of searching to max in positive and then negative, switch up = pos till 10 - neg till 10 - pos till 100 - etc.
 // FIXME deeper search for double sign changes leads to buggy behaviour (synchro issue?)
+// FIXME remove unnecessary behavious value
 
 public class Curve extends Pane {
 
@@ -35,12 +34,12 @@ public class Curve extends Pane {
     private String[] behaviour = {"","","","",""};          // 0 = symmetries ; 2 = degree of function ; 3 = y-intercept ; 4 = zeroes
     private String[] zeroes = {"", "", "", ""};
 
-    private int decimalPlaces = 15;
-    int maxDepth = 2;
-    BigDecimal roofMultiplier = new BigDecimal("10");           // Changes multiplier for new step roof calculations
-    BigDecimal maxRoof = new BigDecimal("100");         // Changing this to higher values, heavily impacts performance
-
-
+    private int maxDepth = 2;       // Defines max depth distance between double sign changes
+    // To prevent rounding errors, the decimal places are dependent on maxDepth (and the min-value 0.01 which is ignored here for the time being)
+    // For better understanding: 0,01x^4 -> 0,01 * ( 1 / 10^maxDepth )^4 = 1 * 10^( 2 + maxDepth * 4 )
+    private int decimalPlaces = 2 + maxDepth * 4;
+    private BigDecimal roofMultiplier = new BigDecimal("10");           // Changes multiplier for new step roof calculations
+    private BigDecimal maxRoof = new BigDecimal("100");         // Changing this to higher values heavily impacts performance
 
     public Curve(
             ArrayList<Double> values,
@@ -123,13 +122,13 @@ public class Curve extends Pane {
     }
 
     private BigDecimal calcYValueBD(BigDecimal x) {
-        BigDecimal y = new BigDecimal("0", MathContext.DECIMAL128);
+        BigDecimal y = new BigDecimal("0");
 
         for ( int i = 0; i < values.size(); i++ ) {
             BigDecimal tempValue = new BigDecimal( String.valueOf(values.get(i)) );
             BigDecimal powerTo = x.pow(i);
             BigDecimal newTemp = tempValue.multiply(powerTo);
-            y = y.add(newTemp, MathContext.DECIMAL64);
+            y = y.add(newTemp);
         }
 
         y = y.setScale(decimalPlaces, RoundingMode.DOWN);
@@ -145,7 +144,7 @@ public class Curve extends Pane {
 
                 BigDecimal newStepSize = stepSize.divide(new BigDecimal("10").pow(i));      // stepSize / 10^i
                 for ( BigDecimal ii = iterator; ii.abs().compareTo(iterator.add(stepSize).abs()) < 1; ii = ii.add(newStepSize) ) {
-                    if ( calcYValueBD(iterator).signum() != calcYValueBD(ii).signum()) {
+                    if ( calcYValueBD(iterator).signum() != calcYValueBD(ii).signum() ) {
                         iterator = ii.subtract(newStepSize);
                         stepSize = newStepSize;
 
@@ -176,14 +175,13 @@ public class Curve extends Pane {
             return iterator;
         }
         else if ( Arrays.stream(zeroes).anyMatch(iterator.setScale(decimalPlaces - 2, RoundingMode.DOWN).stripTrailingZeros().toString()::equals) ) {
-            // TODO stepRoof needs to be dependent on iterator
 
             if ( stepSize.compareTo(new BigDecimal("0")) > 0 ) {
-                iterator = iterator.add(stepSize);
+                iterator = iterator.add(new BigDecimal("1").divide(new BigDecimal("10").pow(maxDepth)));            // Since it can find multiple sign changes only up to maxDepth, no need to go deeper here
                 stepSize = new BigDecimal("1");
-                stepRoof = maxRoof;
+                stepRoof = maxRoof;             // TODO change new stepRoof depending on iterator position
             } else if ( stepSize.compareTo(new BigDecimal("0")) < 0 ) {
-                iterator = iterator.add(stepSize);
+                iterator = iterator.add(new BigDecimal("-1").divide(new BigDecimal("10").pow(maxDepth)));
                 stepSize = new BigDecimal("-1");
                 stepRoof = maxRoof.negate();
             }

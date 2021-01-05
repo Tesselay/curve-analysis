@@ -14,14 +14,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 // TODO Replace doubles with BigDecimal where sensible
-// TODO Add enum (or similar) to get function references in a list to iterate through
-// TODO Refactor zero point search to search until no value is found anymore
 // TODO Make gui pretty
-// TODO add settings to alter maxDepth and maxRoof
 // TODO improve performance
     // instead of searching to max in positive and then negative, switch up = pos till 10 - neg till 10 - pos till 100 - etc.
 // FIXME deeper search for double sign changes leads to buggy behaviour (synchro issue?)
-// FIXME remove unnecessary behavious value
+// FIXME remove unnecessary behaviour value
 
 public class Curve extends Pane {
 
@@ -35,6 +32,7 @@ public class Curve extends Pane {
     private String[] zeroes = {"", "", "", ""};
 
     private int maxDepth = 2;       // Defines max depth distance between double sign changes
+    private BigDecimal defaultStepSize = new BigDecimal("1").divide(new BigDecimal("10").pow(maxDepth));
     // To prevent rounding errors, the decimal places are dependent on maxDepth (and the min-value 0.01 which is ignored here for the time being)
     // For better understanding: 0,01x^4 -> 0,01 * ( 1 / 10^maxDepth )^4 = 1 * 10^( 2 + maxDepth * 4 )
     private int decimalPlaces = 2 + maxDepth * 4;
@@ -137,33 +135,7 @@ public class Curve extends Pane {
         return y;
     }
 
-    private Pair<BigDecimal, BigDecimal> doubleSignChangeSearch(BigDecimal iterator, BigDecimal stepSize) {
-        if (stepSize.abs().compareTo(new BigDecimal("1")) >= 0 ) {
-
-            for ( int i = 0; i <= maxDepth; i++ ) {
-
-                BigDecimal newStepSize = stepSize.divide(new BigDecimal("10").pow(i));      // stepSize / 10^i
-                for ( BigDecimal ii = iterator; ii.abs().compareTo(iterator.add(stepSize).abs()) < 1; ii = ii.add(newStepSize) ) {
-                    if ( calcYValueBD(iterator).signum() != calcYValueBD(ii).signum() ) {
-                        iterator = ii.subtract(newStepSize);
-                        stepSize = newStepSize;
-
-                        return new Pair<>(iterator, stepSize);
-                    }
-                }
-
-            }
-        }
-
-        return new Pair<>(iterator, stepSize);
-    }
-
     private BigDecimal rec_approxBD(BigDecimal stepSize, BigDecimal iterator, BigDecimal stepRoof) {
-
-        // TODO replace with Lambda
-        Pair<BigDecimal, BigDecimal> p = doubleSignChangeSearch(iterator, stepSize);
-        iterator = p.getKey();
-        stepSize = p.getValue();
 
         BigDecimal yValue = calcYValueBD(iterator);
 
@@ -178,18 +150,19 @@ public class Curve extends Pane {
 
             if ( stepSize.compareTo(new BigDecimal("0")) > 0 ) {
                 iterator = iterator.add(new BigDecimal("1").divide(new BigDecimal("10").pow(maxDepth)));            // Since it can find multiple sign changes only up to maxDepth, no need to go deeper here
-                stepSize = new BigDecimal("1");
+                stepSize = defaultStepSize;
                 stepRoof = maxRoof;             // TODO change new stepRoof depending on iterator position
             } else if ( stepSize.compareTo(new BigDecimal("0")) < 0 ) {
                 iterator = iterator.add(new BigDecimal("-1").divide(new BigDecimal("10").pow(maxDepth)));
-                stepSize = new BigDecimal("-1");
+                stepSize = defaultStepSize.negate();
                 stepRoof = maxRoof.negate();
             }
 
             iterator = rec_approxBD(stepSize, iterator, stepRoof);
         }
+        // TODO replace with pingpong of pos to neg & vice versa. Search up to 10, then -10, then 100, then -100 or so
         else if ( iterator.compareTo(maxRoof) > 0 ) {
-            iterator = rec_approxBD( new BigDecimal("-1"), new BigDecimal("0"), new BigDecimal("-100") );
+            iterator = rec_approxBD( defaultStepSize.negate(), new BigDecimal("0"), new BigDecimal("-100") );
         }
         else if ( iterator.compareTo(maxRoof.negate()) < 0 ) {
             return new BigDecimal("-99999");
@@ -213,7 +186,7 @@ public class Curve extends Pane {
     private void rec_runThroughBD() {
         while (zeroes[0].equals("") || zeroes[1].equals("") || zeroes[2].equals("") || zeroes[3].equals("")) {
 
-            BigDecimal zero = rec_approxBD(new BigDecimal("1"), new BigDecimal("0"), new BigDecimal("10"));
+            BigDecimal zero = rec_approxBD(defaultStepSize, new BigDecimal("0"), new BigDecimal("10"));
 
             for ( int i = 0 ; i <= zeroes.length ; i++ ) {
                 if (zeroes[i].equals("")) {
@@ -222,8 +195,6 @@ public class Curve extends Pane {
                 }
             }
         }
-
-
     }
 
     private void zeroDegreeZeroes() {

@@ -6,9 +6,9 @@
 
 <FlowPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.CurveAnalysisController">
     <HBox>
-        <VBox style="-fx-border-color: black">
+        <VBox style="-fx-border-color: black; -fx-padding: 5 20 5 5;">
             <GridPane>
-                <Label text="f(x) = " GridPane.columnIndex="0" GridPane.rowIndex="0" GridPane.halignment="RIGHT"/>
+                <Label text="f(x) = " GridPane.columnIndex="0" GridPane.rowIndex="0" GridPane.halignment="RIGHT" style="-fx-font-weight: bold"/>
                 <Label fx:id="lx4" GridPane.columnIndex="1" GridPane.rowIndex="0" GridPane.halignment="RIGHT"/>
                 <Label fx:id="lx3" GridPane.columnIndex="2" GridPane.rowIndex="0" GridPane.halignment="RIGHT"/>
                 <Label fx:id="lx2" GridPane.columnIndex="3" GridPane.rowIndex="0" GridPane.halignment="RIGHT"/>
@@ -16,21 +16,21 @@
                 <Label fx:id="lx" GridPane.columnIndex="5" GridPane.rowIndex="0" GridPane.halignment="RIGHT"/>
 
 
-                <Spinner prefWidth="40" editable="true" amountToStepBy="0.1" initialValue="0." max="10000." min="-10000." fx:id="x4" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-                <Spinner prefWidth="40" editable="true" amountToStepBy="0.1" initialValue="0." max="10000." min="-10000." fx:id="x3" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
-                <Spinner prefWidth="40" editable="true" amountToStepBy="0.1" initialValue="0." max="10000." min="-10000." fx:id="x2" GridPane.columnIndex="3" GridPane.rowIndex="1"/>
-                <Spinner prefWidth="40" editable="true" amountToStepBy="0.1" initialValue="0." max="10000." min="-10000." fx:id="x1" GridPane.columnIndex="4" GridPane.rowIndex="1"/>
-                <Spinner prefWidth="40" editable="true" amountToStepBy="0.1" initialValue="0." max="10000." min="-10000." fx:id="x0" GridPane.columnIndex="5" GridPane.rowIndex="1"/>
+                <Spinner prefWidth="60" editable="true" amountToStepBy="0.1" initialValue="0." max="10000." min="-10000." fx:id="x4" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                <Spinner prefWidth="60" editable="true" amountToStepBy="0.1" initialValue="0." max="10000." min="-10000." fx:id="x3" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                <Spinner prefWidth="60" editable="true" amountToStepBy="0.1" initialValue="0." max="10000." min="-10000." fx:id="x2" GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+                <Spinner prefWidth="60" editable="true" amountToStepBy="0.1" initialValue="0." max="10000." min="-10000." fx:id="x1" GridPane.columnIndex="4" GridPane.rowIndex="1"/>
+                <Spinner prefWidth="60" editable="true" amountToStepBy="0.1" initialValue="0." max="10000." min="-10000." fx:id="x0" GridPane.columnIndex="5" GridPane.rowIndex="1"/>
 
             </GridPane>
-            <Label fx:id ="completeCurve" />
-            <Label text = "Symmetries:"/>
+            <Label fx:id ="completeCurve" style="-fx-padding: 10 0 0 0;"/>
+            <Label text = "Symmetries:" style="-fx-font-weight: bold; -fx-padding: 10 0 0 0;"/>
             <Label fx:id="symmetries"/>
-            <Label text = "Degree of function:"/>
+            <Label text = "Degree of function:" style="-fx-font-weight: Bold; -fx-padding: 10 0 0 0;"/>
             <Label fx:id="degree"/>
-            <Label text = "Y-intercept:"/>
+            <Label text = "Y-intercept:" style="-fx-font-weight: Bold; -fx-padding: 10 0 0 0;"/>
             <Label fx:id="yAxesCrossing"/>
-            <Label text = "Roots:"/>
+            <Label text = "Roots:" style="-fx-font-weight: Bold; -fx-padding: 10 0 0 0;"/>
             <Label fx:id="zeroPoints"/>
 
 

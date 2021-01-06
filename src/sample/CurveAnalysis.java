@@ -20,7 +20,7 @@ public class CurveAnalysis extends Application {
 
         Parent root = FXMLLoader.load(getClass().getResource("CurveAnalysis.fxml"));
 
-        Scene scene = new Scene(root, 800, 600);
+        Scene scene = new Scene(root);
         primaryStage.setTitle("Curve Analysis");
         primaryStage.setScene(scene);
 

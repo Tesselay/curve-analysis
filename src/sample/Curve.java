@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 // TODO Replace doubles with BigDecimal where sensible
-// TODO Make gui pretty
 // TODO make decimalPlaces dependent on min-value too
 // FIXME deeper search for double sign changes leads to buggy behaviour (synchro issue?)
 

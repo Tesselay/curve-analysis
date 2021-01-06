@@ -16,7 +16,6 @@ import java.util.Arrays;
 // TODO Make gui pretty
 // TODO make decimalPlaces dependent on min-value too
 // FIXME deeper search for double sign changes leads to buggy behaviour (synchro issue?)
-// FIXME remove unnecessary behaviour value
 
 public class Curve extends Pane {
 
@@ -251,7 +250,7 @@ public class Curve extends Pane {
     private void analyseDegree() {
         for (int i = 0; i < values.size(); i++) {
             if (values.get(i) != 0) {
-                this.behaviour[2] = String.valueOf(i);
+                this.behaviour[1] = String.valueOf(i);
             }
         }
     }
@@ -275,11 +274,11 @@ public class Curve extends Pane {
             }
         }
 
-        this.behaviour[4] = String.format("1. Root: %s\n2. Root: %s\n3. Root: %s\n4. Root: %s", zeroes[0], zeroes[1], zeroes[2], zeroes[3]);
+        this.behaviour[3] = String.format("1. Root: %s\n2. Root: %s\n3. Root: %s\n4. Root: %s", zeroes[0], zeroes[1], zeroes[2], zeroes[3]);
     }
 
     private void analyseYIntercept() {
-        this.behaviour[3] = String.valueOf(values.get(0));
+        this.behaviour[2] = String.valueOf(values.get(0));
     }
 
     private void analyseBehaviour(){
@@ -290,7 +289,7 @@ public class Curve extends Pane {
     }
 
     public String getBehaviour(int index){
-        if (index>=0 && index <=4) {
+        if (index>=0 && index <=3) {
             return behaviour[index];
         }
         else{return "none";}

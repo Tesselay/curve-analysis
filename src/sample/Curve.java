@@ -6,7 +6,6 @@ import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
 import javafx.scene.shape.Rectangle;
-import javafx.util.Pair;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -15,8 +14,7 @@ import java.util.Arrays;
 
 // TODO Replace doubles with BigDecimal where sensible
 // TODO Make gui pretty
-// TODO improve performance
-    // instead of searching to max in positive and then negative, switch up = pos till 10 - neg till 10 - pos till 100 - etc.
+// TODO make decimalPlaces dependent on min-value too
 // FIXME deeper search for double sign changes leads to buggy behaviour (synchro issue?)
 // FIXME remove unnecessary behaviour value
 
@@ -28,16 +26,16 @@ public class Curve extends Pane {
     private double xInc;
     private Axes axes;
     private Path path;
-    private String[] behaviour = {"","","","",""};          // 0 = symmetries ; 2 = degree of function ; 3 = y-intercept ; 4 = zeroes
+    private String[] behaviour = {"","","","",""};          // 0 = symmetries ; 1 = degree of function ; 3 = y-intercept ; 4 = zeroes
     private String[] zeroes = {"", "", "", ""};
 
-    private int maxDepth = 2;       // Defines max depth distance between double sign changes
-    private BigDecimal defaultStepSize = new BigDecimal("1").divide(new BigDecimal("10").pow(maxDepth));
+    private final int maxDepth = 2;       // Defines max depth distance between double sign changes
     // To prevent rounding errors, the decimal places are dependent on maxDepth (and the min-value 0.01 which is ignored here for the time being)
     // For better understanding: 0,01x^4 -> 0,01 * ( 1 / 10^maxDepth )^4 = 1 * 10^( 2 + maxDepth * 4 )
-    private int decimalPlaces = 2 + maxDepth * 4;
-    private BigDecimal roofMultiplier = new BigDecimal("10");           // Changes multiplier for new step roof calculations
-    private BigDecimal maxRoof = new BigDecimal("100");         // Changing this to higher values heavily impacts performance
+    private final int decimalPlaces = 2 + maxDepth * 4;
+    private final BigDecimal defaultStepSize = new BigDecimal("1").divide(new BigDecimal("10").pow(maxDepth), decimalPlaces, RoundingMode.DOWN );
+    private BigDecimal stepRoofMultiplier = new BigDecimal("1");
+    private final BigDecimal maxRoof = new BigDecimal("100");       // Changing this heavily impacts performance
 
     public Curve(
             ArrayList<Double> values,
@@ -142,38 +140,54 @@ public class Curve extends Pane {
         BigDecimal nextStep = iterator.add(stepSize);
         nextStep = nextStep.stripTrailingZeros();
 
-        if (    yValue.equals(new BigDecimal("0"))
-                && Arrays.stream(zeroes).noneMatch(iterator.setScale(decimalPlaces - 2, RoundingMode.DOWN).stripTrailingZeros().toString()::equals) ) {
+        BigDecimal compareValue = iterator.setScale(decimalPlaces - 2, RoundingMode.DOWN).stripTrailingZeros();
+
+        if (
+                yValue.equals(new BigDecimal("0"))
+                && Arrays.stream(zeroes).noneMatch(compareValue.toString()::equals)
+        ) {
             return iterator;
         }
-        else if ( Arrays.stream(zeroes).anyMatch(iterator.setScale(decimalPlaces - 2, RoundingMode.DOWN).stripTrailingZeros().toString()::equals) ) {
+        else if ( Arrays.stream(zeroes).anyMatch(compareValue.toString()::equals) ) {
 
             if ( stepSize.compareTo(new BigDecimal("0")) > 0 ) {
-                iterator = iterator.add(new BigDecimal("1").divide(new BigDecimal("10").pow(maxDepth)));            // Since it can find multiple sign changes only up to maxDepth, no need to go deeper here
+                iterator = iterator.add(new BigDecimal("1").divide(new BigDecimal("10").pow(maxDepth), decimalPlaces, RoundingMode.DOWN ));            // Since it can find multiple sign changes only up to maxDepth, no need to go deeper here
                 stepSize = defaultStepSize;
-                stepRoof = maxRoof;             // TODO change new stepRoof depending on iterator position
+                stepRoof = iterator.setScale(-1, RoundingMode.UP);
             } else if ( stepSize.compareTo(new BigDecimal("0")) < 0 ) {
-                iterator = iterator.add(new BigDecimal("-1").divide(new BigDecimal("10").pow(maxDepth)));
+                iterator = iterator.add(new BigDecimal("-1").divide(new BigDecimal("10").pow(maxDepth), decimalPlaces, RoundingMode.DOWN ));
                 stepSize = defaultStepSize.negate();
-                stepRoof = maxRoof.negate();
+                stepRoof = iterator.setScale(-1, RoundingMode.UP);
             }
 
             iterator = rec_approxBD(stepSize, iterator, stepRoof);
         }
-        // TODO replace with pingpong of pos to neg & vice versa. Search up to 10, then -10, then 100, then -100 or so
-        else if ( iterator.compareTo(maxRoof) > 0 ) {
-            iterator = rec_approxBD( defaultStepSize.negate(), new BigDecimal("0"), new BigDecimal("-100") );
-        }
-        else if ( iterator.compareTo(maxRoof.negate()) < 0 ) {
+        else if ( iterator.compareTo(maxRoof.negate()) <= 0 ) {
             return new BigDecimal("-99999");
         }
-        else if ( (iterator.abs()).compareTo(stepRoof.abs()) > 0 && stepSize.abs().signum() >= 0 ) {
-            BigDecimal nextRoof = stepRoof.multiply( roofMultiplier );
-            iterator = rec_approxBD(stepSize, iterator, nextRoof);
+        else if ( (iterator.abs()).compareTo(stepRoof.abs()) >= 0) {
+
+            if ( stepRoof.signum() > 0 ) {
+                iterator = iterator.subtract(stepRoof.divide(stepRoofMultiplier, decimalPlaces, RoundingMode.DOWN )).negate();
+                stepRoof = stepRoof.negate();
+                stepSize = stepSize.negate();
+            } else if ( stepRoof.signum() < 0 ) {
+                iterator = stepRoof.negate();
+                stepRoofMultiplier = stepRoofMultiplier.add(new BigDecimal("1"));
+                stepRoof = new BigDecimal("10").multiply(stepRoofMultiplier);
+                stepSize = stepSize.negate();
+            } else {
+                System.err.println("Error with stepRoof calculation");
+                System.exit(1);
+            }
+
+            iterator = rec_approxBD(stepSize, iterator, stepRoof);
         }
-        else if (   yValue.signum() != calcYValueBD(nextStep).signum()
-                    && calcYValueBD(nextStep).signum() != 0 ) {
-            BigDecimal newStepRoof = stepRoof.divide( roofMultiplier );
+        else if (
+                yValue.signum() != calcYValueBD(nextStep).signum()
+                && calcYValueBD(nextStep).signum() != 0
+        ) {
+            BigDecimal newStepRoof = stepRoof.divide( new BigDecimal("10").multiply(stepRoofMultiplier), decimalPlaces, RoundingMode.DOWN );
             newStepRoof = newStepRoof.add(iterator);
             iterator = rec_approxBD(stepSize.multiply(new BigDecimal("0.1")), iterator, newStepRoof);
         }
@@ -185,6 +199,7 @@ public class Curve extends Pane {
 
     private void rec_runThroughBD() {
         while (zeroes[0].equals("") || zeroes[1].equals("") || zeroes[2].equals("") || zeroes[3].equals("")) {
+            stepRoofMultiplier = new BigDecimal("1");
 
             BigDecimal zero = rec_approxBD(defaultStepSize, new BigDecimal("0"), new BigDecimal("10"));
 
@@ -255,7 +270,7 @@ public class Curve extends Pane {
         }
 
         for ( int i = 0; i < zeroes.length; i++ ) {
-            if (zeroes[i].equals("") || zeroes[i].equals("-99999")) {
+            if (zeroes[i].equals("") || zeroes[i].equals("-99999") || zeroes[i].equals("NaN") ) {
                 zeroes[i] = "No value found!";
             }
         }

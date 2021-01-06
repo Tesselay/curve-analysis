@@ -57,9 +57,9 @@ public class CurveAnalysisController implements Initializable {
         curve.setId("curve"+numberofChildren);
         myPane.getChildren().add(curve);
         symmetries.setText(curve.getBehaviour(0));
-        degree.setText(curve.getBehaviour(2));
-        yAxesCrossing.setText(curve.getBehaviour(3));
-        zeroPoints.setText(curve.getBehaviour(4));
+        degree.setText(curve.getBehaviour(1));
+        yAxesCrossing.setText(curve.getBehaviour(2));
+        zeroPoints.setText(curve.getBehaviour(3));
     }
 
     @Override

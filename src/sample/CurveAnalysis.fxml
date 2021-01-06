@@ -30,7 +30,7 @@
             <Label fx:id="degree"/>
             <Label text = "Y-intercept:"/>
             <Label fx:id="yAxesCrossing"/>
-            <Label text = "roots:"/>
+            <Label text = "Roots:"/>
             <Label fx:id="zeroPoints"/>
 
 

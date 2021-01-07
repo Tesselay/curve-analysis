@@ -27,13 +27,13 @@ public class Curve extends Pane {
     private String[] behaviour = {"","","",""};          // 0 = symmetries ; 1 = degree of function ; 2 = y-intercept ; 3 = zeroes
     private String[] zeroes = {"", "", "", ""};
 
-    private final int maxDepth = 2;       // Defines max depth distance between double sign changes
+    private int maxDepth = 3;       // Defines max depth distance between double sign changes
     // To prevent rounding errors, the decimal places are dependent on maxDepth (and the min-value 0.01 which is ignored here for the time being)
     // For better understanding: 0,01x^4 -> 0,01 * ( 1 / 10^maxDepth )^4 = 1 * 10^( 2 + maxDepth * 4 )
     private final int decimalPlaces = 2 + maxDepth * 4;
-    private final BigDecimal defaultStepSize = new BigDecimal("1").divide(new BigDecimal("10").pow(maxDepth), decimalPlaces, RoundingMode.DOWN );
+    private final BigDecimal defaultStepSize = new BigDecimal("1").divide(new BigDecimal("10").pow(maxDepth), decimalPlaces, RoundingMode.DOWN ).stripTrailingZeros();
     private BigDecimal stepRoofMultiplier = new BigDecimal("1");
-    private final BigDecimal maxRoof = new BigDecimal("100");       // Changing this heavily impacts performance
+    private BigDecimal maxRoof = new BigDecimal("1E+2");       // Changing this heavily impacts performance
 
     public Curve(
             ArrayList<Double> values,
@@ -132,6 +132,7 @@ public class Curve extends Pane {
     }
 
     private BigDecimal rec_approxBD(BigDecimal stepSize, BigDecimal iterator, BigDecimal stepRoof) {
+        iterator = iterator.stripTrailingZeros();
 
         BigDecimal yValue = calcYValueBD(iterator);
 
@@ -212,11 +213,7 @@ public class Curve extends Pane {
 
     private void zeroDegreeZeroes() {
         if (values.get(0) == 0) {
-            for ( int i = 0; i < zeroes.length; i++ ) {
-                if (zeroes[i].equals("")) {
-                    zeroes[i] = "Infinite!";
-                }
-            }
+            Arrays.fill(zeroes, "Infinite!");
         }
     }
 
@@ -263,7 +260,7 @@ public class Curve extends Pane {
             secondDegreeZeroes();
         } else if (values.get(1) != 0) {
             firstDegreeZeroes();
-        } else if (values.get(0) != 0) {
+        } else {
             zeroDegreeZeroes();
         }
 

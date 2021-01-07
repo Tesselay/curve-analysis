@@ -121,8 +121,7 @@ public class Curve extends Pane {
         for ( int i = 0; i < values.size(); i++ ) {
             BigDecimal tempValue = new BigDecimal( String.valueOf(values.get(i)) );
             BigDecimal powerTo = x.pow(i);
-            BigDecimal newTemp = tempValue.multiply(powerTo);
-            y = y.add(newTemp);
+            y = y.add(tempValue.multiply(powerTo));
         }
 
         y = y.setScale(decimalPlaces, RoundingMode.DOWN);

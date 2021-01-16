@@ -27,9 +27,6 @@ public class Curve extends Pane {
     private String[] behaviour = {"","","",""};          // 0 = symmetries ; 1 = degree of function ; 2 = y-intercept ; 3 = zeroes
     private String[] zeroes = {"", "", "", ""};
 
-    // For better understanding: 0,01x^4 -> 0,01 * ( 1 / 10^maxDepth )^4 = 1 * 10^( 2 + maxDepth * 4 )
-
-
     private final int maxDepth = 3;       // Defines max depth distance between double sign changes
     // To prevent rounding errors, the decimal places are dependent on maxDepth (and the min-value 0.01 which is ignored here for the time being)
     private final int decimalPlaces = 2 + maxDepth * 4;

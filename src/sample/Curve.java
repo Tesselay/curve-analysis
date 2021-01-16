@@ -27,13 +27,16 @@ public class Curve extends Pane {
     private String[] behaviour = {"","","",""};          // 0 = symmetries ; 1 = degree of function ; 2 = y-intercept ; 3 = zeroes
     private String[] zeroes = {"", "", "", ""};
 
-    private int maxDepth = 3;       // Defines max depth distance between double sign changes
-    // To prevent rounding errors, the decimal places are dependent on maxDepth (and the min-value 0.01 which is ignored here for the time being)
     // For better understanding: 0,01x^4 -> 0,01 * ( 1 / 10^maxDepth )^4 = 1 * 10^( 2 + maxDepth * 4 )
+
+
+    private final int maxDepth = 3;       // Defines max depth distance between double sign changes
+    // To prevent rounding errors, the decimal places are dependent on maxDepth (and the min-value 0.01 which is ignored here for the time being)
     private final int decimalPlaces = 2 + maxDepth * 4;
     private final BigDecimal defaultStepSize = new BigDecimal("1").divide(new BigDecimal("10").pow(maxDepth), decimalPlaces, RoundingMode.DOWN ).stripTrailingZeros();
-    private BigDecimal stepRoofMultiplier = new BigDecimal("1");
-    private BigDecimal maxRoof = new BigDecimal("1E+2");       // Changing this heavily impacts performance
+    private final BigDecimal defaultStepRoofMultiplier = new BigDecimal("1");
+    private BigDecimal stepRoofMultiplier = new BigDecimal("0");
+    private final BigDecimal maxRoof = new BigDecimal("1E+2");       // Changing this heavily impacts performance
 
     public Curve(
             ArrayList<Double> values,
@@ -149,11 +152,11 @@ public class Curve extends Pane {
         else if ( Arrays.stream(zeroes).anyMatch(compareValue.toString()::equals) ) {
 
             if ( stepSize.compareTo(new BigDecimal("0")) > 0 ) {
-                iterator = iterator.add(new BigDecimal("1").divide(new BigDecimal("10").pow(maxDepth), decimalPlaces, RoundingMode.DOWN ));            // Since it can find multiple sign changes only up to maxDepth, no need to go deeper here
+                iterator = iterator.add(defaultStepSize);            // Since it can find multiple sign changes only up to maxDepth, no need to go deeper here
                 stepSize = defaultStepSize;
                 stepRoof = iterator.setScale(-1, RoundingMode.UP);
             } else if ( stepSize.compareTo(new BigDecimal("0")) < 0 ) {
-                iterator = iterator.add(new BigDecimal("-1").divide(new BigDecimal("10").pow(maxDepth), decimalPlaces, RoundingMode.DOWN ));
+                iterator = iterator.add(defaultStepSize.negate());
                 stepSize = defaultStepSize.negate();
                 stepRoof = iterator.setScale(-1, RoundingMode.UP);
             }
@@ -171,7 +174,7 @@ public class Curve extends Pane {
                 stepSize = stepSize.negate();
             } else if ( stepRoof.signum() < 0 ) {
                 iterator = stepRoof.negate();
-                stepRoofMultiplier = stepRoofMultiplier.add(new BigDecimal("1"));
+                stepRoofMultiplier = stepRoofMultiplier.add(defaultStepRoofMultiplier);
                 stepRoof = new BigDecimal("10").multiply(stepRoofMultiplier);
                 stepSize = stepSize.negate();
             } else {
@@ -197,7 +200,7 @@ public class Curve extends Pane {
 
     private void rec_runThroughBD() {
         while (zeroes[0].equals("") || zeroes[1].equals("") || zeroes[2].equals("") || zeroes[3].equals("")) {
-            stepRoofMultiplier = new BigDecimal("1");
+            stepRoofMultiplier = defaultStepRoofMultiplier;
 
             BigDecimal zero = rec_approxBD(defaultStepSize, new BigDecimal("0"), new BigDecimal("10"));
 

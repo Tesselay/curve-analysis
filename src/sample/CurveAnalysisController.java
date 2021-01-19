@@ -1,10 +1,14 @@
 package sample;
 
+import javafx.beans.Observable;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 
 import javafx.scene.control.Button;
 
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 
@@ -18,6 +22,7 @@ import java.util.ResourceBundle;
 public class CurveAnalysisController implements Initializable {
 
 
+    @FXML public CheckBox showDerivatives;
     @FXML private Button analyze;
     @FXML private Spinner x0;
     @FXML private Spinner x1;
@@ -49,7 +54,7 @@ public class CurveAnalysisController implements Initializable {
     private void createCurve(){
 
         completeCurve.setText("f(x) = "+lx4.getText()+" "+lx3.getText()+" "+lx2.getText()+" "+lx1.getText()+" "+lx.getText());
-        Curve curve = new Curve( curValues, -8, 8, 0.1,myAxes );
+        Curve curve = new Curve( curValues, -8, 8, 0.1,myAxes, showDerivatives.isSelected() );
         int numberofChildren = myPane.getChildren().size();
         for (int i = numberofChildren -1; i > 0 ; i--) {
             myPane.getChildren().remove(i);
@@ -100,6 +105,14 @@ public class CurveAnalysisController implements Initializable {
         x2.getStyleClass().add(Spinner.STYLE_CLASS_SPLIT_ARROWS_VERTICAL);
         x3.getStyleClass().add(Spinner.STYLE_CLASS_SPLIT_ARROWS_VERTICAL);
         x4.getStyleClass().add(Spinner.STYLE_CLASS_SPLIT_ARROWS_VERTICAL);
+
+        showDerivatives.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean t1) {
+                createCurve();
+            }
+        });
+
     }
     private String createTextByValue(String value,String xPower){
         String text = "";

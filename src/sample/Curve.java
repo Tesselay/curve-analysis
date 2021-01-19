@@ -1,5 +1,7 @@
 package sample;
 
+import javafx.fxml.FXML;
+import javafx.scene.control.CheckBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.LineTo;
@@ -30,6 +32,7 @@ public class Curve extends Pane {
     private Path secondDerivativePath;
     private String[] behaviour = {"","","",""};          // 0 = symmetries ; 1 = degree of function ; 2 = y-intercept ; 3 = zeroes
     private String[] zeroes = {"", "", "", ""};
+    private boolean showDerivatives;
 
     private final int maxDepth = 3;       // Defines max depth distance between double sign changes
     // To prevent rounding errors, the decimal places are dependent on maxDepth (and the min-value 0.01 which is ignored here for the time being)
@@ -42,23 +45,36 @@ public class Curve extends Pane {
     public Curve(
             ArrayList<Double> values,
             double xMin, double xMax, double xInc,
-            Axes axes
+            Axes axes, boolean showDerivatives
     ) {
         this.values = values;
         this.xMin = xMin;
         this.xMax = xMax;
         this.xInc = xInc;
         this.axes = axes;
+        this.showDerivatives = showDerivatives;
         this.path = new Path();
-        draw();
+        this.firstDerivativePath = new Path();
+        this.secondDerivativePath = new Path();
+        calcDerivatives();
+        drawMain();
         analyseBehaviour();
     }
 
-    private void draw(){
+    private void drawMain(){
+        draw(path, Color.ORANGE.deriveColor(0, 1, 1, 0.6), values);
 
-        path.setStroke(Color.ORANGE.deriveColor(0, 1, 1, 0.6));
-        path.setStrokeWidth(2);
-        path.setClip(
+        if (showDerivatives) {
+            draw(firstDerivativePath, Color.GREEN.deriveColor(0, 1, 1, 0.6), firstDerivativeValues);
+            draw(secondDerivativePath, Color.BLUE.deriveColor(0, 1, 1, 0.6), secondDerivativeValues);
+        }
+
+    }
+
+    private void draw(Path drawPath, Color lineColor, ArrayList<Double> graphCoefficients){
+        drawPath.setStroke(lineColor);
+        drawPath.setStrokeWidth(2);
+        drawPath.setClip(
                 new Rectangle(
                         0, 0,
                         axes.getPrefWidth(),
@@ -67,9 +83,9 @@ public class Curve extends Pane {
         );
 
         double x = xMin;
-        double y = calcYValueBD(new BigDecimal(String.valueOf(x))).doubleValue();
+        double y = calcYValueBD(new BigDecimal(String.valueOf(x)), graphCoefficients).doubleValue();
 
-        path.getElements().add(
+        drawPath.getElements().add(
                 new MoveTo(
                         mapX(x, axes), mapY(y, axes)
                 )
@@ -77,8 +93,8 @@ public class Curve extends Pane {
 
         x += xInc;
         while (x < xMax) {
-            y = calcYValueBD(new BigDecimal(String.valueOf(x))).doubleValue();
-            path.getElements().add(
+            y = calcYValueBD(new BigDecimal(String.valueOf(x)), graphCoefficients).doubleValue();
+            drawPath.getElements().add(
                     new LineTo(
                             mapX(x, axes), mapY(y, axes)
                     )
@@ -90,7 +106,7 @@ public class Curve extends Pane {
         setPrefSize(axes.getPrefWidth(), axes.getPrefHeight());
         setMaxSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
 
-        getChildren().setAll(path);
+        getChildren().addAll(drawPath);
     }
 
     private double mapX(double x, Axes axes) {
@@ -110,8 +126,20 @@ public class Curve extends Pane {
         return -y * sy + ty;
     }
 
-    private void calcDerivatives() {
+    private ArrayList<Double> calcDerivative(ArrayList<Double> values) {
+        ArrayList<Double> derivativeValues = new ArrayList<>();
+        for( int i = 1; i < values.size(); i++ ) {
+            derivativeValues.add(i - 1, values.get(i)*i);
+        }
 
+        derivativeValues.add(0d);
+
+        return derivativeValues;
+    }
+
+    private void calcDerivatives() {
+        firstDerivativeValues = calcDerivative(values);
+        secondDerivativeValues = calcDerivative(firstDerivativeValues);
     }
 
     private double getSum(ArrayList<Double> values) {
@@ -123,7 +151,7 @@ public class Curve extends Pane {
         return sum;
     }
 
-    private BigDecimal calcYValueBD(BigDecimal x) {
+    private BigDecimal calcYValueBD(BigDecimal x, ArrayList<Double> values) {
         BigDecimal y = new BigDecimal("0");
 
         for ( int i = 0; i < values.size(); i++ ) {
@@ -141,7 +169,7 @@ public class Curve extends Pane {
     private BigDecimal rec_approxBD(BigDecimal stepSize, BigDecimal iterator, BigDecimal stepRoof) {
         iterator = iterator.stripTrailingZeros();
 
-        BigDecimal yValue = calcYValueBD(iterator);
+        BigDecimal yValue = calcYValueBD(iterator, values);
 
         BigDecimal nextStep = iterator.add(stepSize);
         nextStep = nextStep.stripTrailingZeros();
@@ -190,8 +218,8 @@ public class Curve extends Pane {
             iterator = rec_approxBD(stepSize, iterator, stepRoof);
         }
         else if (
-                yValue.signum() != calcYValueBD(nextStep).signum()
-                && calcYValueBD(nextStep).signum() != 0
+                yValue.signum() != calcYValueBD(nextStep, values).signum()
+                && calcYValueBD(nextStep, values).signum() != 0
         ) {
             BigDecimal newStepRoof = stepRoof.divide( new BigDecimal("10").multiply(stepRoofMultiplier), decimalPlaces, RoundingMode.DOWN );
             newStepRoof = newStepRoof.add(iterator);

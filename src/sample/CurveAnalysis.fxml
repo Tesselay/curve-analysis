@@ -25,7 +25,7 @@
             </GridPane>
             <Label fx:id ="completeCurve" style="-fx-padding: 10 0 0 0;"/>
 
-            <CheckBox text="Show derivatives"/>
+            <CheckBox fx:id="showDerivatives" text="Show derivatives"/>
 
             <Label text = "Symmetries:" style="-fx-font-weight: bold; -fx-padding: 10 0 0 0;"/>
             <Label fx:id="symmetries"/>

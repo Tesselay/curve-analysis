@@ -19,11 +19,15 @@ import java.util.Arrays;
 public class Curve extends Pane {
 
     private ArrayList<Double> values;
+    private ArrayList<Double> firstDerivativeValues;
+    private ArrayList<Double> secondDerivativeValues;
     private double xMin;
     private double xMax;
     private double xInc;
     private Axes axes;
     private Path path;
+    private Path firstDerivativePath;
+    private Path secondDerivativePath;
     private String[] behaviour = {"","","",""};          // 0 = symmetries ; 1 = degree of function ; 2 = y-intercept ; 3 = zeroes
     private String[] zeroes = {"", "", "", ""};
 
@@ -104,6 +108,10 @@ public class Curve extends Pane {
                         axes.getYAxis().getLowerBound());
 
         return -y * sy + ty;
+    }
+
+    private void calcDerivatives() {
+
     }
 
     private double getSum(ArrayList<Double> values) {
